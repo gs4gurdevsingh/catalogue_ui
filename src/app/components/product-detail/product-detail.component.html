@@ -1,0 +1,140 @@
+<div class="product-detail-container">
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-spinner">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <!-- Product Details -->
+  <div *ngIf="!loading && !error && product" class="product-detail">
+    <button mat-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Products
+    </button>
+
+    <div class="product-content">
+      <!-- Product Images -->
+      <div class="product-images">
+        <div class="main-image-container">
+          <img [src]="getProductImage(currentImageIndex)" [alt]="product.name" class="main-image">
+          
+          <!-- Navigation arrows for multiple images -->
+          <button *ngIf="product.images && product.images.length > 1" 
+                  mat-icon-button 
+                  class="nav-button prev" 
+                  (click)="previousImage()">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          
+          <button *ngIf="product.images && product.images.length > 1" 
+                  mat-icon-button 
+                  class="nav-button next" 
+                  (click)="nextImage()">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+
+        <!-- Thumbnail images -->
+        <div *ngIf="product.images && product.images.length > 1" class="thumbnails">
+          <img *ngFor="let image of product.images; let i = index" 
+               [src]="image" 
+               [alt]="product.name + ' - Image ' + (i + 1)"
+               [class.active]="i === currentImageIndex"
+               (click)="currentImageIndex = i"
+               class="thumbnail">
+        </div>
+      </div>
+
+      <!-- Product Information -->
+      <div class="product-info">
+        <h1>{{ product.name }}</h1>
+        <p class="category">{{ getCategoryName(product.category) }}</p>
+        
+        <div class="description">
+          <h3>Description</h3>
+          <p>{{ product.description }}</p>
+        </div>
+
+        <div class="pricing">
+          <h3>Pricing Information</h3>
+          <div class="price-cards">
+            <mat-card class="price-card" *ngIf="visibleRateSetting === 'All' || visibleRateSetting === 'ProductRate'">
+              <mat-card-header>
+                <mat-card-title>Product Rate</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="price">₹{{ product.productRate.toFixed(2) }}</div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="price-card" *ngIf="visibleRateSetting === 'All' || visibleRateSetting === 'DealerRate'">
+              <mat-card-header>
+                <mat-card-title>Dealer Rate</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="price">₹{{ product.dealerRate.toFixed(2) }}</div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card class="price-card" *ngIf="visibleRateSetting === 'All' || visibleRateSetting === 'WholesaleRate'">
+              <mat-card-header>
+                <mat-card-title>Wholesale Rate</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="price">₹{{ product.wholesaleRate.toFixed(2) }}</div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+
+        <!-- YouTube Videos -->
+        <div *ngIf="product.youtubeLinks && product.youtubeLinks.length > 0" class="videos">
+          <h3>Product Videos</h3>
+          <div class="video-grid">
+            <div *ngFor="let video of product.youtubeLinks" class="video-item">
+              <div class="video-container">
+                <iframe [src]="getEmbedUrl(video) | safe" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                </iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-meta">
+          <p><strong>Added:</strong> {{ product.createdAt | date:'medium' }}</p>
+          <p *ngIf="product.updatedAt"><strong>Last Updated:</strong> {{ product.updatedAt | date:'medium' }}</p>
+        </div>
+
+        <!-- Sharing Panel -->
+        <div class="share-panel">
+          <span class="share-title">Share this Product:</span>
+          <div class="share-buttons">
+            <button class="share-btn whatsapp" (click)="shareOnWhatsApp()" title="Share on WhatsApp" type="button">
+              <mat-icon>chat</mat-icon>
+              <span>WhatsApp</span>
+            </button>
+            <button class="share-btn facebook" (click)="shareOnFacebook()" title="Share on Facebook" type="button">
+              <mat-icon>public</mat-icon>
+              <span>Facebook</span>
+            </button>
+            <button class="share-btn twitter" (click)="shareOnTwitter()" title="Share on Twitter/X" type="button">
+              <mat-icon>share</mat-icon>
+              <span>Twitter/X</span>
+            </button>
+            <button class="share-btn copy" (click)="copyLinkToClipboard()" title="Copy Link" type="button">
+              <mat-icon>link</mat-icon>
+              <span>Copy Link</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

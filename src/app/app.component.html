@@ -1,0 +1,15 @@
+<mat-toolbar class="main-header">
+  <span class="logo-text" routerLink="/">Product Catalogue</span>
+  <span class="spacer"></span>
+  <div class="nav-links">
+    <button mat-button routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">Home</button>
+    <button mat-button routerLink="/products" routerLinkActive="active-link">Products</button>
+    <button mat-button routerLink="/admin" routerLinkActive="active-link" *ngIf="isLoggedIn">Admin Panel</button>
+    <button mat-stroked-button color="primary" routerLink="/login" *ngIf="!isLoggedIn" class="auth-btn">Admin Login</button>
+    <button mat-stroked-button color="warn" (click)="logout()" *ngIf="isLoggedIn" class="auth-btn">Logout</button>
+  </div>
+</mat-toolbar>
+
+<div class="container main-content">
+  <router-outlet></router-outlet>
+</div>

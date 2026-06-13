@@ -1,0 +1,167 @@
+<div class="catalogue-wrapper">
+  <!-- Hero / Search Section -->
+  <div class="catalogue-hero">
+    <div class="hero-content">
+      <span class="hero-subtitle">Premium Collections</span>
+      <h1 class="hero-title">Discover Exceptional Products</h1>
+      <p class="hero-description">Explore our curated catalogue of high-quality electronics, accessories, and more.</p>
+      
+      <!-- Modern Search Bar -->
+      <div class="search-bar-wrapper">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" [formControl]="searchControl" placeholder="What are you looking for today?">
+        <button class="clear-search-btn" *ngIf="searchControl.value" (click)="searchControl.setValue('')" type="button">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="catalogue-content">
+    <!-- Category Chips Navigation -->
+    <div class="category-nav">
+      <button 
+        class="category-chip" 
+        [class.active]="selectedCategory.value === ''" 
+        (click)="selectedCategory.setValue('')"
+        type="button">
+        All Products
+      </button>
+      <button 
+        class="category-chip" 
+        *ngFor="let cat of categories" 
+        [class.active]="selectedCategory.value === cat._id" 
+        (click)="selectedCategory.setValue(cat._id || '')"
+        type="button">
+        {{ cat.name }}
+      </button>
+    </div>
+
+    <!-- Advanced Filter Trigger & Actions -->
+    <div class="catalogue-toolbar">
+      <span class="results-count">{{ totalItems }} products found</span>
+      
+      <div class="toolbar-actions">
+        <button class="filter-toggle-btn" (click)="showAdvancedFilters = !showAdvancedFilters" [class.active]="showAdvancedFilters" type="button">
+          <mat-icon>tune</mat-icon>
+          Filters
+        </button>
+        
+        <div class="sort-group">
+          <mat-form-field appearance="outline" class="toolbar-select">
+            <mat-select [formControl]="sortByControl" (selectionChange)="onFilterChange()" placeholder="Sort By">
+              <mat-option value="name">Name</mat-option>
+              <mat-option value="productRate">Price</mat-option>
+              <mat-option value="createdAt">Date Added</mat-option>
+            </mat-select>
+          </mat-form-field>
+          
+          <button class="order-btn" (click)="toggleSortOrder()" [title]="sortOrderControl.value === 'asc' ? 'Sort Ascending' : 'Sort Descending'" type="button">
+            <mat-icon>{{ sortOrderControl.value === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Collapsible Advanced Filters Panel -->
+    <div class="advanced-filters-panel" *ngIf="showAdvancedFilters">
+      <div class="filter-grid">
+        <div class="filter-item">
+          <label>Minimum Price</label>
+          <div class="price-input-wrapper">
+            <span class="currency-symbol">₹</span>
+            <input type="number" [formControl]="minPriceControl" (change)="onFilterChange()" placeholder="Min">
+          </div>
+        </div>
+        
+        <div class="filter-item">
+          <label>Maximum Price</label>
+          <div class="price-input-wrapper">
+            <span class="currency-symbol">₹</span>
+            <input type="number" [formControl]="maxPriceControl" (change)="onFilterChange()" placeholder="Max">
+          </div>
+        </div>
+        
+        <div class="filter-item actions-item">
+          <button mat-stroked-button class="clear-filters-btn" (click)="clearFilters()" type="button">
+            <mat-icon>clear_all</mat-icon> Reset Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="loading-state">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading products...</p>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="error-state">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ error }}</p>
+    </div>
+
+    <!-- Products Grid -->
+    <div *ngIf="!loading && !error" class="product-grid">
+      <div *ngFor="let product of products" class="product-card" [routerLink]="['/products', product._id]">
+        <div class="card-image-wrapper">
+          <img [src]="getProductImage(product)" [alt]="product.name" class="product-image">
+          <div class="card-category-badge">{{ getCategoryName(product.category) }}</div>
+          <button class="card-share-btn" (click)="shareProductWhatsApp(product, $event)" title="Share on WhatsApp" type="button">
+            <mat-icon>chat</mat-icon>
+          </button>
+          <div class="card-hover-overlay">
+            <span class="view-details-txt">View Details</span>
+          </div>
+        </div>
+        
+        <div class="card-content">
+          <h2 class="product-title">{{ product.name }}</h2>
+          <p class="product-desc">{{ product.description | slice:0:80 }}{{ product.description.length > 80 ? '...' : '' }}</p>
+          
+          <div class="rates-display">
+            <!-- Product Rate -->
+            <div class="rate-badge product-rate" *ngIf="visibleRateSetting === 'All' || visibleRateSetting === 'ProductRate'">
+              <span class="rate-label">Product Rate</span>
+              <span class="rate-val">₹{{ product.productRate.toFixed(2) }}</span>
+            </div>
+            
+            <!-- Dealer Rate -->
+            <div class="rate-badge dealer-rate" *ngIf="visibleRateSetting === 'All' || visibleRateSetting === 'DealerRate'">
+              <span class="rate-label">Dealer Rate</span>
+              <span class="rate-val">₹{{ product.dealerRate.toFixed(2) }}</span>
+            </div>
+            
+            <!-- Wholesale Rate -->
+            <div class="rate-badge wholesale-rate" *ngIf="visibleRateSetting === 'All' || visibleRateSetting === 'WholesaleRate'">
+              <span class="rate-label">Wholesale Rate</span>
+              <span class="rate-val">₹{{ product.wholesaleRate.toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && !error && totalPages > 1" class="pagination-section">
+      <mat-paginator
+        [length]="totalItems"
+        [pageSize]="itemsPerPage"
+        [pageIndex]="currentPage - 1"
+        [pageSizeOptions]="[6, 12, 24, 48]"
+        (page)="onPageChange($event.pageIndex + 1)">
+      </mat-paginator>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && !error && products.length === 0" class="empty-state">
+      <mat-icon>inventory_2</mat-icon>
+      <h3>No products found</h3>
+      <p>We couldn't find any products matching your current filters. Try resetting them.</p>
+      <button mat-raised-button color="primary" (click)="clearFilters()" type="button">
+        Reset All Filters
+      </button>
+    </div>
+  </div>
+</div>

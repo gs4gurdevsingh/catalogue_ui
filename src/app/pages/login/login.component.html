@@ -1,0 +1,39 @@
+<div class="login-page-container">
+  <div class="glass-login-card">
+    <div class="card-header">
+      <mat-icon class="lock-icon">lock_open</mat-icon>
+      <h2>Admin Login</h2>
+      <p>Access the control panel</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Username</mat-label>
+        <input matInput formControlName="username" placeholder="Username" required autocomplete="username">
+        <mat-icon matSuffix>person</mat-icon>
+        <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
+          Username is required
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <input matInput type="password" formControlName="password" placeholder="Password" required autocomplete="current-password">
+        <mat-icon matSuffix>vpn_key</mat-icon>
+        <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+          Password is required
+        </mat-error>
+      </mat-form-field>
+
+      <div class="error-container" *ngIf="errorMessage">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <button mat-raised-button color="primary" type="submit" class="submit-button" [disabled]="loginForm.invalid || loading">
+        <span *ngIf="!loading">Login</span>
+        <mat-spinner diameter="20" *ngIf="loading" color="accent"></mat-spinner>
+      </button>
+    </form>
+  </div>
+</div>

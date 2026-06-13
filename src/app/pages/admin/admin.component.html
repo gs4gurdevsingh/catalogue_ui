@@ -1,0 +1,410 @@
+<div class="admin-container">
+  <div class="admin-header">
+    <h1>Admin Dashboard</h1>
+    <div class="tabs">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'products'" 
+        (click)="activeTab = 'products'">
+        <mat-icon>inventory_2</mat-icon>
+        Manage Products
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'categories'" 
+        (click)="activeTab = 'categories'">
+        <mat-icon>category</mat-icon>
+        Manage Categories
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'settings'" 
+        (click)="activeTab = 'settings'">
+        <mat-icon>settings</mat-icon>
+        Global Settings
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab 1: Products List -->
+  <div *ngIf="activeTab === 'products'" class="tab-content">
+    <div class="toolbar">
+      <h2>Product Catalogue</h2>
+      <button mat-raised-button color="primary" (click)="openAddModal()" class="add-btn">
+        <mat-icon>add</mat-icon>
+        Add New Product
+      </button>
+    </div>
+
+    <div *ngIf="loading" class="spinner-container">
+      <mat-spinner></mat-spinner>
+    </div>
+
+    <div *ngIf="!loading" class="table-responsive">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Product Name</th>
+            <th>Category</th>
+            <th>Product Rate</th>
+            <th>Dealer Rate</th>
+            <th>Wholesale Rate</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let product of products">
+            <td>
+              <div class="product-name-cell">
+                <img [src]="getProductImage(product)" class="admin-thumbnail" alt="{{ product.name }}">
+                <div class="product-info-text">
+                  <strong>{{ product.name }}</strong>
+                  <span class="product-id">ID: {{ product._id }}</span>
+                </div>
+              </div>
+            </td>
+            <td>{{ getCategoryName(product.category) }}</td>
+            <td class="rate-cell">₹{{ product.productRate.toFixed(2) }}</td>
+            <td class="rate-cell">₹{{ product.dealerRate.toFixed(2) }}</td>
+            <td class="rate-cell">₹{{ product.wholesaleRate.toFixed(2) }}</td>
+            <td>
+              <button 
+                class="status-toggle" 
+                [class.active]="product.isActive"
+                (click)="toggleProductStatus(product)"
+                [title]="product.isActive ? 'Deactivate Product' : 'Activate Product'">
+                <span class="toggle-dot"></span>
+                <span class="toggle-text">{{ product.isActive ? 'Active' : 'Inactive' }}</span>
+              </button>
+            </td>
+            <td>
+              <div class="actions">
+                <button mat-icon-button color="primary" (click)="openEditModal(product)" title="Edit">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteProduct(product._id)" title="Delete">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="products.length === 0">
+            <td colspan="7" class="empty-cell">No products available. Click "Add New Product" to create one.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab 2: Categories List -->
+  <div *ngIf="activeTab === 'categories'" class="tab-content">
+    <div class="toolbar">
+      <h2>Product Categories</h2>
+      <button mat-raised-button color="primary" (click)="openCategoryAddModal()" class="add-btn">
+        <mat-icon>add</mat-icon>
+        Add New Category
+      </button>
+    </div>
+
+    <div *ngIf="loadingCategories" class="spinner-container">
+      <mat-spinner></mat-spinner>
+    </div>
+
+    <div *ngIf="!loadingCategories" class="table-responsive">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Category Name</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cat of adminCategories">
+            <td>
+              <div class="product-name-cell">
+                <img [src]="cat.image || 'assets/placeholder-image.jpg'" class="admin-thumbnail" alt="{{ cat.name }}">
+                <div class="product-info-text">
+                  <strong>{{ cat.name }}</strong>
+                  <span class="product-id">ID: {{ cat._id }}</span>
+                </div>
+              </div>
+            </td>
+            <td>{{ cat.description || 'No description provided' }}</td>
+            <td>
+              <button 
+                class="status-toggle" 
+                [class.active]="cat.isActive"
+                (click)="toggleCategoryStatus(cat)"
+                [title]="cat.isActive ? 'Deactivate Category' : 'Activate Category'">
+                <span class="toggle-dot"></span>
+                <span class="toggle-text">{{ cat.isActive ? 'Active' : 'Inactive' }}</span>
+              </button>
+            </td>
+            <td>
+              <div class="actions">
+                <button mat-icon-button color="primary" (click)="openCategoryEditModal(cat)" title="Edit">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteCategory(cat._id)" title="Delete">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="adminCategories.length === 0">
+            <td colspan="4" class="empty-cell">No categories available. Click "Add New Category" to create one.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab 3: Settings -->
+  <div *ngIf="activeTab === 'settings'" class="tab-content">
+    <mat-card class="settings-card">
+      <mat-card-header>
+        <mat-card-title>End-User Price Visibility</mat-card-title>
+        <mat-card-subtitle>Select which price rates are displayed to end-users browsing the catalogue.</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="settings-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Visible Price Type</mat-label>
+            <mat-select [(value)]="visibleRateSetting">
+              <mat-option value="All">All Rates (Product, Dealer, & Wholesale)</mat-option>
+              <mat-option value="ProductRate">Product Rate Only</mat-option>
+              <mat-option value="DealerRate">Dealer Rate Only</mat-option>
+              <mat-option value="WholesaleRate">Wholesale Rate Only</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="saveSettings()" 
+          [disabled]="settingsSaving" 
+          class="save-settings-btn">
+          <mat-spinner *ngIf="settingsSaving" diameter="20" class="btn-spinner"></mat-spinner>
+          Save Settings
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Add/Edit Overlay Modal -->
+  <div *ngIf="showProductModal" class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditing ? 'Edit Product' : 'Add New Product' }}</h2>
+        <button class="close-btn" (click)="closeModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="productForm" (ngSubmit)="submitProductForm()" class="modal-body">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Product Name</mat-label>
+          <input matInput formControlName="name" placeholder="Enter product name...">
+          <mat-error *ngIf="productForm.get('name')?.hasError('required')">Name is required</mat-error>
+          <mat-error *ngIf="productForm.get('name')?.hasError('maxlength')">Cannot exceed 100 characters</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description</mat-label>
+          <textarea matInput formControlName="description" rows="4" placeholder="Enter product description..."></textarea>
+          <mat-error *ngIf="productForm.get('description')?.hasError('required')">Description is required</mat-error>
+          <mat-error *ngIf="productForm.get('description')?.hasError('maxlength')">Cannot exceed 1000 characters</mat-error>
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Product Rate (₹)</mat-label>
+            <input matInput type="number" formControlName="productRate">
+            <mat-error *ngIf="productForm.get('productRate')?.hasError('required')">Product rate is required</mat-error>
+            <mat-error *ngIf="productForm.get('productRate')?.hasError('min')">Rate cannot be negative</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Dealer Rate (₹)</mat-label>
+            <input matInput type="number" formControlName="dealerRate">
+            <mat-error *ngIf="productForm.get('dealerRate')?.hasError('required')">Dealer rate is required</mat-error>
+            <mat-error *ngIf="productForm.get('dealerRate')?.hasError('min')">Rate cannot be negative</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Wholesale Rate (₹)</mat-label>
+            <input matInput type="number" formControlName="wholesaleRate">
+            <mat-error *ngIf="productForm.get('wholesaleRate')?.hasError('required')">Wholesale rate is required</mat-error>
+            <mat-error *ngIf="productForm.get('wholesaleRate')?.hasError('min')">Rate cannot be negative</mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Category</mat-label>
+          <mat-select formControlName="category">
+            <mat-option *ngFor="let cat of categories" [value]="cat._id">{{ cat.name }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="productForm.get('category')?.hasError('required')">Category is required</mat-error>
+        </mat-form-field>
+
+        <!-- Dynamic Image Upload Manager -->
+        <div class="image-manager-section">
+          <span class="manager-label">Product Images</span>
+          
+          <div class="image-controls-row">
+            <div class="paste-url-group">
+              <mat-form-field appearance="outline" class="url-input-field">
+                <mat-label>Paste Image URL</mat-label>
+                <input matInput type="text" [(ngModel)]="pastedImageUrl" [ngModelOptions]="{standalone: true}" placeholder="https://example.com/image.jpg">
+              </mat-form-field>
+              <button type="button" mat-flat-button color="accent" class="add-url-btn" (click)="addImageUrl()" [disabled]="!pastedImageUrl.trim()">
+                <mat-icon>add</mat-icon> Add URL
+              </button>
+            </div>
+            
+            <div class="file-upload-group">
+              <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display:none">
+              <button type="button" mat-stroked-button class="upload-btn" (click)="fileInput.click()" [disabled]="uploadingFile">
+                <mat-spinner *ngIf="uploadingFile" diameter="20" class="btn-spinner"></mat-spinner>
+                <mat-icon *ngIf="!uploadingFile">cloud_upload</mat-icon>
+                Upload Image
+              </button>
+            </div>
+          </div>
+
+          <!-- Horizontal scrolling list of images with remove controls -->
+          <div class="image-previews-container" *ngIf="uploadedImages && uploadedImages.length > 0">
+            <div class="image-preview-card" *ngFor="let img of uploadedImages; let i = index">
+              <img [src]="img" alt="Product Image Preview" class="preview-img">
+              <span class="primary-badge" *ngIf="i === 0">Primary</span>
+              <button type="button" class="remove-img-btn" (click)="removeImage(i)" title="Remove Image">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+          
+          <div class="no-images-placeholder" *ngIf="!uploadedImages || uploadedImages.length === 0">
+            <mat-icon>image_not_supported</mat-icon>
+            <span>No images added yet. Upload files or paste a URL.</span>
+          </div>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>YouTube Videos (Comma separated URLs)</mat-label>
+          <input matInput formControlName="youtubeLinks" placeholder="https://youtube.com/watch?v=..., https://youtu.be/...">
+        </mat-form-field>
+
+        <div class="form-checkbox">
+          <button 
+            type="button"
+            class="status-toggle large" 
+            [class.active]="productForm.get('isActive')?.value"
+            (click)="productForm.patchValue({ isActive: !productForm.get('isActive')?.value })">
+            <span class="toggle-dot"></span>
+            <span class="toggle-text">{{ productForm.get('isActive')?.value ? 'Product will be visible to end-users' : 'Product will be hidden' }}</span>
+          </button>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" mat-stroked-button (click)="closeModal()">Cancel</button>
+          <button type="submit" mat-raised-button color="primary" [disabled]="submittingProduct">
+            <mat-spinner *ngIf="submittingProduct" diameter="20" class="btn-spinner"></mat-spinner>
+            Save Product
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add/Edit Category Modal -->
+  <div *ngIf="showCategoryModal" class="modal-backdrop" (click)="closeCategoryModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditingCategory ? 'Edit Category' : 'Add New Category' }}</h2>
+        <button class="close-btn" (click)="closeCategoryModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <form [formGroup]="categoryForm" (ngSubmit)="submitCategoryForm()" class="modal-body">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Category Name</mat-label>
+          <input matInput formControlName="name" placeholder="Enter category name...">
+          <mat-error *ngIf="categoryForm.get('name')?.hasError('required')">Name is required</mat-error>
+          <mat-error *ngIf="categoryForm.get('name')?.hasError('maxlength')">Cannot exceed 50 characters</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description</mat-label>
+          <textarea matInput formControlName="description" rows="3" placeholder="Enter category description..."></textarea>
+          <mat-error *ngIf="categoryForm.get('description')?.hasError('maxlength')">Cannot exceed 200 characters</mat-error>
+        </mat-form-field>
+
+        <!-- Category Image Upload Manager -->
+        <div class="image-manager-section">
+          <span class="manager-label">Category Image</span>
+          
+          <div class="image-controls-row">
+            <div class="paste-url-group">
+              <mat-form-field appearance="outline" class="url-input-field">
+                <mat-label>Paste Image URL</mat-label>
+                <input matInput type="text" [(ngModel)]="pastedCategoryImageUrl" [ngModelOptions]="{standalone: true}" placeholder="https://example.com/image.jpg">
+              </mat-form-field>
+              <button type="button" mat-flat-button color="accent" class="add-url-btn" (click)="addCategoryImageUrl()" [disabled]="!pastedCategoryImageUrl.trim()">
+                <mat-icon>add</mat-icon> Add URL
+              </button>
+            </div>
+            
+            <div class="file-upload-group">
+              <input type="file" #catFileInput (change)="onCategoryImageSelected($event)" accept="image/*" style="display:none">
+              <button type="button" mat-stroked-button class="upload-btn" (click)="catFileInput.click()" [disabled]="uploadingCategoryImage">
+                <mat-spinner *ngIf="uploadingCategoryImage" diameter="20" class="btn-spinner"></mat-spinner>
+                <mat-icon *ngIf="!uploadingCategoryImage">cloud_upload</mat-icon>
+                Upload Image
+              </button>
+            </div>
+          </div>
+
+          <!-- Preview -->
+          <div class="image-previews-container" *ngIf="uploadedCategoryImage">
+            <div class="image-preview-card">
+              <img [src]="uploadedCategoryImage" alt="Category Image Preview" class="preview-img">
+              <button type="button" class="remove-img-btn" (click)="removeCategoryImage()" title="Remove Image">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </div>
+          
+          <div class="no-images-placeholder" *ngIf="!uploadedCategoryImage">
+            <mat-icon>image_not_supported</mat-icon>
+            <span>No image added yet. Upload file or paste a URL.</span>
+          </div>
+        </div>
+
+        <div class="form-checkbox">
+          <button 
+            type="button"
+            class="status-toggle large" 
+            [class.active]="categoryForm.get('isActive')?.value"
+            (click)="categoryForm.patchValue({ isActive: !categoryForm.get('isActive')?.value })">
+            <span class="toggle-dot"></span>
+            <span class="toggle-text">{{ categoryForm.get('isActive')?.value ? 'Category will be active' : 'Category will be inactive' }}</span>
+          </button>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" mat-stroked-button (click)="closeCategoryModal()">Cancel</button>
+          <button type="submit" mat-raised-button color="primary" [disabled]="submittingCategory">
+            <mat-spinner *ngIf="submittingCategory" diameter="20" class="btn-spinner"></mat-spinner>
+            Save Category
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

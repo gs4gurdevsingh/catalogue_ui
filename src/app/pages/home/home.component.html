@@ -1,0 +1,81 @@
+<div class="home-container">
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1>Product Catalogue</h1>
+      <p>Discover high-quality products with competitive pricing.</p>
+      <button mat-raised-button color="primary" routerLink="/products" class="cta-button">
+        Browse Catalogue
+      </button>
+    </div>
+  </div>
+
+  <!-- Featured Products -->
+  <section class="featured-section">
+    <h2>Featured Products</h2>
+    
+    <div *ngIf="loading" class="loading-spinner">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <div *ngIf="!loading && featuredProducts.length > 0" class="featured-grid">
+      <div *ngFor="let product of featuredProducts" class="featured-card modern-card" [routerLink]="['/products', product._id]">
+        <div class="image-wrapper">
+          <img [src]="getProductImage(product)" [alt]="product.name" class="featured-image">
+        </div>
+        <div class="card-details">
+          <h3>{{ product.name }}</h3>
+          <p class="desc">{{ product.description | slice:0:60 }}{{ product.description.length > 60 ? '...' : '' }}</p>
+          <div class="featured-price">
+            <span class="price-label">Price:</span>
+            <strong *ngIf="visibleRateSetting === 'All' || visibleRateSetting === 'ProductRate'">
+              ₹{{ product.productRate.toFixed(2) }}
+            </strong>
+            <strong *ngIf="visibleRateSetting === 'DealerRate'">
+              ₹{{ product.dealerRate.toFixed(2) }}
+            </strong>
+            <strong *ngIf="visibleRateSetting === 'WholesaleRate'">
+              ₹{{ product.wholesaleRate.toFixed(2) }}
+            </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && featuredProducts.length === 0" class="no-products">
+      <p>No products available at the moment.</p>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="categories-section">
+    <h2>Product Categories</h2>
+    
+    <div *ngIf="categories.length > 0" class="categories-grid">
+      <div *ngFor="let category of categories" class="category-card modern-card" [routerLink]="['/products']" [queryParams]="{category: category._id}">
+        <div class="category-icon">
+          <mat-icon>category</mat-icon>
+        </div>
+        <div class="category-info">
+          <h3>{{ category.name }}</h3>
+          <p *ngIf="category.description" class="desc">{{ category.description | slice:0:40 }}{{ category.description.length > 40 ? '...' : '' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="categories.length === 0" class="no-categories">
+      <p>No categories available.</p>
+    </div>
+  </section>
+
+  <!-- Call to Action -->
+  <section class="cta-section modern-card">
+    <div class="cta-content">
+      <h2>Ready to Explore?</h2>
+      <p>Browse our complete product catalogue with advanced search and filtering options.</p>
+      <button mat-flat-button color="primary" routerLink="/products">
+        View All Products
+      </button>
+    </div>
+  </section>
+</div>
