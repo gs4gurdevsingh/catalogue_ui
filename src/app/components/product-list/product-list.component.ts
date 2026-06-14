@@ -147,8 +147,8 @@ export class ProductListComponent implements OnInit {
     event.stopPropagation();
     const productUrl = `${window.location.origin}/#/products/${product._id}`;
     const text = `Check out this product: ${product.name} - ${productUrl}`;
-    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.location.href = whatsappUrl;
   }
 
   clearFilters(): void {

@@ -106,8 +106,8 @@ export class ProductDetailComponent implements OnInit {
   shareOnWhatsApp(): void {
     if (!this.product) return;
     const text = `Check out this product: ${this.product.name} - ${this.getProductUrl()}`;
-    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.location.href = whatsappUrl;
   }
 
   shareOnFacebook(): void {
